@@ -78,8 +78,64 @@ abline(0,0)
 abline(v = 0)}
 ```
 
+## Pearson Correlation Method: 
 
-## Including Plots
+```{r}
+cor.test(noout$adjusted,noout$volume,method = "pearson")
+```
+
+## Manual Step-Wise Regression:
+
+```{r}
+###Model 3 -- Model Selection
+dat1 = noout
+
+###Manuel Step-wise regression
+null=lm(adjusted ~ 1, data=dat1)
+StepF0=null
+summary(StepF0)
+
+add1(StepF0, scope = ~open + high + low + close + volume, test='F', data=dat1)
+StepF1=update(StepF0, ~ low)
+drop1(StepF1, test='F',data=dat1)
+
+add1(StepF1, scope = ~open + high + low + close + volume, test='F', data=dat1)
+StepF2=update(StepF1, ~ low + open)
+summary(StepF2)
+drop1(StepF2, test='F',data=dat1)
+
+add1(StepF2, scope = ~open + high + low + close + volume, test='F', data=dat1)
+StepF3=update(StepF2, ~ low + open + volume)
+summary(StepF3)
+drop1(StepF3, test='F',data=dat1)
+
+add1(StepF3, scope = ~open + high + low + close + volume, test='F', data=dat1)
+
+```
+
+## Automatic Step-Wise Regression:
+
+```{r}
+### Model 4 -- Automatic Step-wise regression, to confirm Model 3
+model4.full = ols(adjusted ~ open
+                  + high + low + close + volume, data=dat1)
+fastbw(model4.full, rule="p",sls=0.001)
+```
+
+## ANOVA
+
+```{r}
+aov_mod = aov(adjusted ~ volume,data = noout)
+
+summary(aov_mod) 
+
+# Check anova assumptions:
+plot(aov_mod,1)
+plot(aov_mod,2)
+plot(aov_mod,3)
+plot(aov_mod,4)
+
+```
 
 
 ```{r pressure, echo=FALSE}
