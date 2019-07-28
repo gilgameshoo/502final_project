@@ -125,7 +125,7 @@ fastbw(model4.full, rule="p",sls=0.001)
 ## ANOVA
 
 ```{r}
-aov_mod = aov(adjusted ~ volume,data = noout)
+aov_mod = aov(adjusted ~ open,data = noout)
 
 summary(aov_mod) 
 
