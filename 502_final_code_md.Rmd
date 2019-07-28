@@ -13,13 +13,71 @@ knitr::opts_chunk$set(echo = TRUE)
 # Dataset:
 
 ```{r cars}
-#Use getSymbol to grab data from yahoo finance by mentioning the start and end date
+# Use getSymbol to grab data from yahoo finance by mentioning the start and end date
 getSymbols("AAPL", src = 'yahoo', from = "2000-01-31", to = "2019-12-31", auto.assign = TRUE, warnings = FALSE) 
 summary(AAPL)
-#We can then transform the daily data into weekly data using to.weekly()
+
+# We can then transform the daily data into weekly data using to.weekly()
 prices_weekly <- to.weekly(AAPL, indexAt = "lastof", OHLC = FALSE)
-summary(prices_weekly)
+
+# Data to begin, create a copy
+dataset = AAPL
+summary(dataset)
+
+hist(dataset$AAPL.Close)
 ```
+
+# Data screening:
+
+```{r}
+colnames(dataset) = c("open", "high", "low", "close", "volume", "adjusted")
+K = 6
+N = nrow(dataset)
+model1 = lm(adjusted ~ . ,data=dataset)
+
+## leverage cutoff
+leverage = hatvalues(model1)
+cutleverage = (2*K + 2) / N
+badlaverage = as.numeric(leverage > cutleverage)
+table(badlaverage)
+
+## cook cutoff
+cooks = cooks.distance(model1)
+cutcook = 4 / (N-K-1)
+badcooks = as.numeric(cooks > cutcook)
+table(badcooks)
+
+## remove outlier
+total = badcooks + badlaverage
+noout = subset(dataset, total < 1)
+```
+
+## Normality: 
+
+```{r}
+## Model 2 -- revised model after cleaning data
+model2 = lm(adjusted ~ . ,data=noout)
+summary(model2, correlation = TRUE)
+fitted = scale(model2$fitted.values)
+standardized2 = rstudent(fake)
+hist(standardized2)
+```
+
+## Linearity:
+
+```{r}
+{qqnorm(standardized2)
+abline(0,1)}
+```
+
+## Homogeneity/Homoscedasticity: 
+
+```{r}
+{plot(fitted, standardized2)
+abline(0,0)
+abline(v = 0)}
+```
+
 
 ## Including Plots
 
